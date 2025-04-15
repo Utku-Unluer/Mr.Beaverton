@@ -1,0 +1,42 @@
+-- Create Users table
+CREATE TABLE IF NOT EXISTS "Users" (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  password VARCHAR(100) NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  last_active TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  streak INTEGER DEFAULT 0
+);
+
+-- Create WordLists table
+CREATE TABLE IF NOT EXISTS "WordLists" (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES "Users"(id) ON DELETE CASCADE,
+  name VARCHAR(100) NOT NULL,
+  description TEXT,
+  context TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create Words table
+CREATE TABLE IF NOT EXISTS "Words" (
+  id SERIAL PRIMARY KEY,
+  list_id INTEGER NOT NULL REFERENCES "WordLists"(id) ON DELETE CASCADE,
+  value VARCHAR(100) NOT NULL,
+  meaning VARCHAR(255) NOT NULL,
+  context TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create function to get word count for a list
+CREATE OR REPLACE FUNCTION get_word_count(list_id INTEGER)
+RETURNS INTEGER AS $$
+DECLARE
+  word_count INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO word_count FROM "Words" WHERE list_id = $1;
+  RETURN word_count;
+END;
+$$ LANGUAGE plpgsql;
